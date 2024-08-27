@@ -45,8 +45,7 @@ export const signup = yup.object({
 export const signin = yup.object({
   username: yup
     .string()
-    .min(5, "Must be between 5 to 15 characters.")
-    .max(15, "Must be between 5 to 15 characters.")
+    .min(5, "Must be at least 5 characters/ valid email address.")
     .required("Username is required."),
   password: yup
     .string()
