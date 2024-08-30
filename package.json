@@ -12,6 +12,7 @@
   "dependencies": {
     "@lottiefiles/dotlottie-react": "^0.8.10",
     "@reduxjs/toolkit": "^2.2.7",
+    "dotenv": "^16.4.5",
     "firebase": "^10.13.0",
     "formik": "^2.4.6",
     "moment": "^2.30.1",

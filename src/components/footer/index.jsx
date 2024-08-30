@@ -112,13 +112,13 @@ const Index = () => {
         <hr className="my-8" />
 
         <p className="text-center">
-          Copyright © 2023
+          Copyright © {new Date().getFullYear()}
           <a
             href="https://chatapp.com/"
             target="_blank"
             className="hover:underline mx-1"
           >
-            Chat App
+            Chat App.
           </a>
           All Rights Reserved.
         </p>
