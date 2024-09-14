@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 import { useFormik } from "formik";
 import React, { useState } from "react";
@@ -5,7 +6,28 @@ import { Link } from "react-router-dom";
 import { signup } from "../helpers/validation";
 import * as ant from "react-icons/ai";
 
+import { CaptchaBox, validateCaptcha, reloadCaptcha } from "react-captcha-lite";
+
+import PasswordStrengthBar from 'react-password-strength-bar';
+
+import BeatLoader from "react-spinners/BeatLoader";
+
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+} from "firebase/auth";
+
+import Alert from "../components/alert";
+import firebaseErrors from "../database/firebaseErrors";
+
 const Signup = () => {
+  const [message, setMessage] = useState("");
+  const [captchaMessage, setCaptchaMessage] = useState("");
+  let [loading, setLoading] = useState(false);
+
+  const auth = getAuth();
+
   const initialValues = {
     firstname: "",
     lastname: "",
@@ -13,13 +35,65 @@ const Signup = () => {
     username: "",
     password: "",
     cpassword: "",
+    captcha: "",
   };
 
   const formik = useFormik({
     initialValues,
-    onSubmit: () => {},
+    onSubmit: () => {
+      registration();
+    },
     validationSchema: signup,
   });
+
+  const registration = () => {
+    setLoading(!loading);
+
+    if(validateCaptcha(formik.values.captcha)){
+      setCaptchaMessage("");
+
+      createUserWithEmailAndPassword(
+        auth,
+        formik.values.email,
+        formik.values.password
+      )
+        .then((userCredential) => {
+          // Signed up
+          //const user = userCredential.user;
+          sendEmailVerification(userCredential.user)
+            .then((result) => {
+              console.log(result);
+              setMessage(
+                <Alert
+                  alert="success"
+                  title="Success"
+                  message="Account created successfully. Please, verify email address before login."
+                />
+              );
+            })
+            .catch((error) => {
+              console.log(error.code);
+            });
+        })
+        .catch((error) => {
+          let values = firebaseErrors.find((key) => key.key == "auth").value;
+          if (values[error.code]) {
+            setMessage(
+              <Alert alert="error" title="Error" message={values[error.code]} />
+            );
+          } else {
+            let code = error.code;
+            code.replace("auth/", "").replace("-", " ");
+            setMessage(<Alert alert="error" title="Error" message={code} />);
+          }
+        });
+    }else{
+      setCaptchaMessage(<Alert alert="warning" title="Warning" message="Captcha is wrong." />);
+      formik.values.user_captcha_input.value = "";
+      componentDidMount();
+    }
+    setLoading(!loading);
+  };
 
   const [passType, setPassType] = useState("password");
   const [cPassType, setCPassType] = useState("password");
@@ -60,7 +134,7 @@ const Signup = () => {
                     .
                   </p>
                 </div>
-
+                {message}
                 <div className="flex flex-row gap-3">
                   <div className="w-1/2">
                     <label
@@ -175,6 +249,7 @@ const Signup = () => {
                       onChange={formik.handleChange}
                       value={formik.values.password}
                     />
+                    <PasswordStrengthBar password={formik.values.password} className="w-full" />
                     {formik.errors.password && formik.touched.password && (
                       <p className="text-red-600 p-2 rounded-md bg-red-300 mt-1 w-[100%]">
                         {formik.errors.password}
@@ -228,11 +303,27 @@ const Signup = () => {
                 </div>
 
                 <div className="!mt-8">
+                  {captchaMessage}
+                  <input
+                    className="w-full text-sm text-gray-800 border border-gray-300 px-4 py-3 rounded-lg outline-blue-600"
+                    placeholder="Enter Captcha Value"
+                    id="captcha"
+                    name="captcha"
+                    type="text"
+                    onChange={formik.handleChange}
+                    value={formik.values.captcha}
+                  />
+                  
+                  <CaptchaBox boxBorder="0px" />
+                </div>
+
+                <div className="!mt-8">
                   <button
                     type="submit"
-                    className="w-full shadow-xl py-3 px-4 text-sm tracking-wide rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
+                    disabled={loading}
+                    className="w-full shadow-xl py-3 px-4 text-sm tracking-wide rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none disabled:cursor-not-allowed"
                   >
-                    Sign Up
+                    {loading ? <BeatLoader size={5} color="#fff" /> : "Sign Up"}
                   </button>
                 </div>
               </form>

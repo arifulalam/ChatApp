@@ -1,12 +1,55 @@
+/* eslint-disable react/no-unknown-property */
 /* eslint-disable no-unused-vars */
 import { useFormik } from "formik";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { signin } from "../helpers/validation";
 import * as ant from "react-icons/ai";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import Lottie from "lottie-react";
+import signinCover from "../assets/anim/signin.json";
+import PasswordChecklist from "react-password-checklist";
+import BeatLoader from "react-spinners/BeatLoader";
+
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  sendEmailVerification,
+  signOut,
+} from "firebase/auth";
+
+import Alert from "../components/alert";
+import firebaseErrors from "../database/firebaseErrors";
+import { useDispatch } from "react-redux";
+import { LoggedInUser } from "../features/Slices/userSlice";
+
+const resendVerificationEmail = ({auth, setMessage}) => {
+  const sendEmail = () => {
+    sendEmailVerification(auth.user);
+    setMessage(
+      <Alert
+        alert="info"
+        title="Verification"
+        message="Email sent! Please, check your mail inbox/junk/spam folder."
+      />
+    );
+  };
+
+  return (
+    <>
+      <a className="text-blue-50" onClick={sendEmail}>
+        Resend
+      </a>
+    </>
+  );
+};
 
 const Signin = () => {
+  const [message, setMessage] = useState("");
+  let [loading, setLoading] = useState(false);
+  const [isStrong, setIsStrong] = useState(false);
+
+  const auth = getAuth();
+
   const initialValues = {
     username: "",
     password: "",
@@ -14,9 +57,48 @@ const Signin = () => {
   };
   const formik = useFormik({
     initialValues,
-    onSubmit: () => {},
+    onSubmit: () => {
+      login();
+    },
     validationSchema: signin,
   });
+
+  const dispatch = useDispatch();
+
+  const login = () => {
+    setLoading(true);
+
+    if (isStrong) {
+      signInWithEmailAndPassword(
+        auth,
+        formik.values.username,
+        formik.values.password
+      )
+        .then((userCredential) => {
+          console.log('User Credential', userCredential.user.emailVerified);
+
+          if (!userCredential.user.emailVerified) {
+            setMessage(
+              <Alert
+                alert="error"
+                title="Error"
+                message={`Please, verify your email first. ${<resendVerificationEmail auth={userCredential.user} setMessage={setMessage} />} verification mail again?`}
+              />
+            );
+            signOut(auth);
+          } else {
+            dispatch(LoggedInUser(userCredential.user));
+          }
+        })
+        .catch((error) => {
+          setMessage(
+            <Alert alert="error" title="Error" message={error.code} />
+          );
+        });
+    }
+
+    setLoading(false);
+  };
 
   const [passType, setPassType] = useState("password");
 
@@ -30,7 +112,12 @@ const Signin = () => {
         <div className="min-h-screen flex fle-col items-center justify-center px-4">
           <div className="grid md:grid-cols-2 items-center gap-4 max-w-6xl w-full">
             <div className="lg:h-[400px] md:h-[250px] max-md:mt-8 max-sm:hidden">
-              <DotLottieReact src="../assets/anim/signin.json" loop autoplay />
+              <Lottie
+                animationData={signinCover}
+                loop={true}
+                autoplay={true}
+                className="h-[450px]"
+              />
             </div>
             <div className="border border-gray-300 rounded-lg p-6 max-w-md shadow-[0_2px_22px_-4px_rgba(93,96,127,0.2)] max-md:mx-auto">
               <form className="space-y-4" onSubmit={formik.handleSubmit}>
@@ -43,6 +130,8 @@ const Signin = () => {
                     possibilities. Your journey begins here.
                   </p>
                 </div>
+
+                {message}
 
                 <div>
                   <label className="text-gray-800 text-sm mb-2 block font-SerifRegular">
@@ -79,6 +168,25 @@ const Signin = () => {
                       placeholder="Enter password"
                       onChange={formik.handleChange}
                       value={formik.values.password}
+                    />
+                    <PasswordChecklist
+                      rules={[
+                        "minLength",
+                        "maxLength",
+                        "specialChar",
+                        "number",
+                        "capital",
+                        "lowercase",
+                        //"match",
+                      ]}
+                      minLength={8}
+                      maxLength={20}
+                      value={formik.values.password}
+                      //valueAgain={formik.values.cpa}
+                      onChange={(isValid) => {
+                        if (isValid) setIsStrong(true);
+                        else setIsStrong(false);
+                      }}
                     />
                     {formik.errors.password && formik.touched.password && (
                       <p className="text-red-600 p-2 rounded-md bg-red-300 mt-1 w-[100%]">
@@ -127,9 +235,10 @@ const Signin = () => {
                 <div className="!mt-8">
                   <button
                     type="submit"
-                    className="w-full shadow-xl py-3 px-4 text-sm tracking-wide rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
+                    disabled={loading}
+                    className="w-full shadow-xl py-3 px-4 text-sm tracking-wide rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none disabled:cursor-not-allowed"
                   >
-                    Log in
+                    {loading ? <BeatLoader size={5} color="#fff" /> : "Sign In"}
                   </button>
                 </div>
 

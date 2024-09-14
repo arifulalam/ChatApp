@@ -128,6 +128,35 @@
       }        
   }
 
+  /*Alert*/
+  .bg-yellow{
+    background-color: #ffed4a;
+  }
+  .bg-yellow-lighter{
+    background-color: #fff9c2;
+  }
+
+  .bg-green{
+    background-color: #38c172;
+  }
+  .bg-green-lighter{
+    background-color: #a2f5bf;
+  }
+
+  .bg-red{
+    background-color: #e3342f;
+  }
+  .bg-red-lighter{
+    background-color: #f9acaa;
+  }
+
+  .bg-teal{
+    background-color: #4dc0b5;
+  }
+  .bg-teal-lighter{
+    background-color: #a0f0ed;
+  }
+
 /*Custom Scroll Bar*/
 /* width */
 ::-webkit-scrollbar {

@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 /* eslint-disable no-unused-vars */
 import * as yup from "yup";
 
@@ -25,6 +26,10 @@ export const signup = yup.object({
     .string()
     .min(8, "Must be between 8 to 15 characters.")
     .max(20, "Must be between 8 to 15 characters.")
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,20})/,
+      "Must be between 8 to 20 Characters having at least One Uppercase, One Lowercase, One Number and One Special Case Character"
+    )
     .required("Password is required."),
   cpassword: yup
     .string()
@@ -51,5 +56,9 @@ export const signin = yup.object({
     .string()
     .min(8, "Must be between 8 to 15 characters.")
     .max(20, "Must be between 8 to 15 characters.")
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,20})/,
+      "Must be between 8 to 20 Characters having at least One Uppercase, One Lowercase, One Number and One Special Case Character"
+    )
     .required("Password is required."),
 });
