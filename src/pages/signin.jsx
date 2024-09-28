@@ -22,7 +22,7 @@ import firebaseErrors from "../database/firebaseErrors";
 import { useDispatch } from "react-redux";
 import { LoggedInUser } from "../features/Slices/userSlice";
 
-const resendVerificationEmail = ({auth, setMessage}) => {
+const resendVerificationEmail = ({ auth, setMessage }) => {
   const sendEmail = () => {
     sendEmailVerification(auth.user);
     setMessage(
@@ -75,14 +75,19 @@ const Signin = () => {
         formik.values.password
       )
         .then((userCredential) => {
-          console.log('User Credential', userCredential.user.emailVerified);
+          console.log("User Credential", userCredential.user.emailVerified);
 
           if (!userCredential.user.emailVerified) {
             setMessage(
               <Alert
                 alert="error"
                 title="Error"
-                message={`Please, verify your email first. ${<resendVerificationEmail auth={userCredential.user} setMessage={setMessage} />} verification mail again?`}
+                message={`Please, verify your email first. ${(
+                  <resendVerificationEmail
+                    auth={userCredential.user}
+                    setMessage={setMessage}
+                  />
+                )} verification mail again?`}
               />
             );
             signOut(auth);
